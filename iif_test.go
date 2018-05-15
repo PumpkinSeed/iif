@@ -53,8 +53,20 @@ func TestExport(t *testing.T) {
 			Clear:    "N",
 			ToPrint:  "Y",
 		},
+		splData{
+			SplID:    "",
+			TrnsType: "DEPOSIT",
+			Date:     "7/1/1998",
+			Accnt:    "Income",
+			Name:     "Customer",
+			Class:    "",
+			Amount:   "-10000",
+			Docnum:   "",
+			Memo:     "",
+			Clear:    "N",
+		},
 	}
-	err := Export(data)
+	err := Export(data, "example")
 
 	assert.NoError(t, err)
 }
@@ -172,6 +184,23 @@ func (t trnsData) GetType() Type {
 	return Trns
 }
 
+type splData struct {
+	SplID    string `iif:"SPLID"`
+	TrnsType string `iif:"TRNSTYPE"`
+	Date     string `iif:"DATE"`
+	Accnt    string `iif:"ACCNT"`
+	Name     string `iif:"NAME"`
+	Class    string `iif:"CLASS"`
+	Amount   string `iif:"AMOUNT"`
+	Docnum   string `iif:"DOCNUM"`
+	Memo     string `iif:"MEMP"`
+	Clear    string `iif:"CLEAR"`
+}
+
+func (s splData) GetType() Type {
+	return Spl
+}
+
 func BenchmarkExport(b *testing.B) {
 	data := []DataLine{
 		accntData{
@@ -209,7 +238,7 @@ func BenchmarkExport(b *testing.B) {
 	}
 
 	for i := 0; i < b.N; i++ {
-		err := Export(data)
+		err := Export(data, "example")
 		if err != nil {
 			panic(err)
 		}

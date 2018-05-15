@@ -2,6 +2,8 @@ package iif
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"reflect"
 	"sort"
 	"strings"
@@ -20,8 +22,10 @@ const (
 )
 
 const (
-	tab = "\t"
-	tag = "iif"
+	tab     = "\t"
+	newLine = "\n"
+	endTrns = "ENDTRNS"
+	tag     = "iif"
 )
 
 type DataLine interface {
@@ -40,7 +44,7 @@ type GroupedWrapper struct {
 	Lines  []string
 }
 
-func Export(dataLines []DataLine) error {
+func Export(dataLines []DataLine, filename string) error {
 	var wrapper []Wrapper
 
 	for _, dataLine := range dataLines {
@@ -63,12 +67,16 @@ func Export(dataLines []DataLine) error {
 
 	wrapper = sorting(wrapper)
 	gw := grouping(wrapper)
+	lines := build(gw)
 
-	for _, v := range gw {
+	return writeFile(lines, filename)
+
+	//fmt.Println(string(lines))
+	/*for _, v := range gw {
 		fmt.Println(v)
-	}
+	}*/
 
-	return nil
+	//return nil
 }
 
 func sorting(wrapper []Wrapper) []Wrapper {
@@ -115,6 +123,77 @@ func groupingTemp(wrapper Wrapper) GroupedWrapper {
 	}
 }
 
+func build(gw []GroupedWrapper) []byte {
+	var result []string
+
+	var trnsKey int
+	for k, v := range gw {
+		if v.Type == Trns {
+			trnsKey = k
+			break
+		}
+		result = append(result, v.Header)
+		for _, line := range v.Lines {
+			result = append(result, line)
+		}
+	}
+
+	trns := buildTrns(gw[trnsKey:len(gw)])
+	for _, line := range trns {
+		result = append(result, line)
+	}
+
+	return []byte(strings.Join(result, newLine))
+}
+
+func buildTrns(gw []GroupedWrapper) []string {
+	var result []string
+
+	fmt.Println(gw)
+
+	for _, v := range gw {
+		result = append(result, v.Header)
+	}
+	result = append(result, getEndTrns(true))
+
+	for _, v := range gw {
+		for _, line := range v.Lines {
+			result = append(result, line)
+		}
+	}
+	result = append(result, getEndTrns(false))
+
+	return result
+}
+
+func writeFile(data []byte, filename string) error {
+	if _, err := os.Stat(getFilename(filename)); os.IsNotExist(err) {
+		f, err := os.Create(getFilename(filename))
+		if err != nil {
+			return err
+		}
+
+		defer f.Close()
+
+		_, err = f.Write(data)
+		if err != nil {
+			return err
+		}
+	}
+
+	err := ioutil.WriteFile(getFilename(filename), data, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getFilename(filename string) string {
+	// @TODO add check for extension
+	return filename + ".iif"
+}
+
 func getHeader(dataLine DataLine) (string, error) {
 	var header []string
 	t := dataLine.GetType()
@@ -145,6 +224,13 @@ func dataLineToString(dataLine DataLine) (string, error) {
 	}
 
 	return addType(strings.Join(result, tab), t, false), nil
+}
+
+func getEndTrns(header bool) string {
+	if header {
+		return "!" + endTrns
+	}
+	return endTrns
 }
 
 func addType(line string, t Type, isHeader bool) string {
