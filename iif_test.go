@@ -71,6 +71,138 @@ func TestExport(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestSorting(t *testing.T) {
+	var wrapper = []Wrapper{
+		{
+			Type:   Vend,
+			Header: "test_header",
+			Line:   "test_line",
+		},
+		{
+			Type:   Accnt,
+			Header: "test_header",
+			Line:   "test_line",
+		},
+		{
+			Type:   Trns,
+			Header: "test_header",
+			Line:   "test_line",
+		},
+		{
+			Type:   Class,
+			Header: "test_header",
+			Line:   "test_line",
+		},
+	}
+
+	wrapper = sorting(wrapper)
+	assert.Equal(t, Accnt, wrapper[0].Type)
+	assert.Equal(t, Class, wrapper[1].Type)
+	assert.Equal(t, Vend, wrapper[2].Type)
+	assert.Equal(t, Trns, wrapper[3].Type)
+}
+
+func TestGrouping(t *testing.T) {
+	var wrapper = []Wrapper{
+		{
+			Type:   Vend,
+			Header: "test_header",
+			Line:   "test_line",
+		},
+		{
+			Type:   Accnt,
+			Header: "test_header",
+			Line:   "test_line",
+		},
+		{
+			Type:   Trns,
+			Header: "test_header",
+			Line:   "test_line",
+		},
+		{
+			Type:   Trns,
+			Header: "test_header_2",
+			Line:   "test_line_2",
+		},
+		{
+			Type:   Class,
+			Header: "test_header",
+			Line:   "test_line",
+		},
+	}
+
+	wrapper = sorting(wrapper)
+	gw := grouping(wrapper)
+	assert.Equal(t, Accnt, gw[0].Type)
+	assert.Equal(t, Trns, gw[3].Type)
+	assert.Equal(t, "test_line", gw[3].Lines[0])
+	assert.Equal(t, "test_line_2", gw[3].Lines[1])
+}
+
+func TestBuild(t *testing.T) {
+	var wrapper = []Wrapper{
+		{
+			Type:   Vend,
+			Header: "test_header",
+			Line:   "test_line",
+		},
+		{
+			Type:   Accnt,
+			Header: "test_header",
+			Line:   "test_line",
+		},
+		{
+			Type:   Trns,
+			Header: "test_header",
+			Line:   "test_line",
+		},
+		{
+			Type:   Trns,
+			Header: "test_header_2",
+			Line:   "test_line_2",
+		},
+		{
+			Type:   Class,
+			Header: "test_header",
+			Line:   "test_line",
+		},
+	}
+
+	wrapper = sorting(wrapper)
+	gw := grouping(wrapper)
+	result := build(gw)
+
+	var expected = "test_header\ntest_line\ntest_header\ntest_line\ntest_header\ntest_line\ntest_header\n!ENDTRNS\ntest_line\ntest_line_2\nENDTRNS"
+
+	assert.Equal(t, expected, string(result))
+}
+
+func TestGetFilename(t *testing.T) {
+	type testCase struct {
+		Value    string
+		Expected string
+	}
+
+	cases := []testCase{
+		{
+			Value:    "test",
+			Expected: "test.iif",
+		},
+		{
+			Value:    "test.iif",
+			Expected: "test.iif",
+		},
+		{
+			Value:    "test.ii",
+			Expected: "test.iif",
+		},
+	}
+
+	for _, v := range cases {
+		assert.Equal(t, v.Expected, getFilename(v.Value))
+	}
+}
+
 func TestGetHeader(t *testing.T) {
 	vend := vendData{
 		Name:      "Vendor",

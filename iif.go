@@ -70,13 +70,6 @@ func Export(dataLines []DataLine, filename string) error {
 	lines := build(gw)
 
 	return writeFile(lines, filename)
-
-	//fmt.Println(string(lines))
-	/*for _, v := range gw {
-		fmt.Println(v)
-	}*/
-
-	//return nil
 }
 
 func sorting(wrapper []Wrapper) []Wrapper {
@@ -149,8 +142,6 @@ func build(gw []GroupedWrapper) []byte {
 func buildTrns(gw []GroupedWrapper) []string {
 	var result []string
 
-	fmt.Println(gw)
-
 	for _, v := range gw {
 		result = append(result, v.Header)
 	}
@@ -190,7 +181,13 @@ func writeFile(data []byte, filename string) error {
 }
 
 func getFilename(filename string) string {
-	// @TODO add check for extension
+	const sep = "."
+
+	if strings.Contains(filename, sep) {
+		parts := strings.Split(filename, sep)
+		parts[len(parts)-1] = "iif"
+		return strings.Join(parts, sep)
+	}
 	return filename + ".iif"
 }
 
