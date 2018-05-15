@@ -2,7 +2,6 @@ package iif
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,13 +9,13 @@ import (
 
 func TestExport(t *testing.T) {
 	data := []DataLine{
-		AccntData{
+		accntData{
 			Name:      "Accounts",
 			AccntType: "Payable",
 			Desc:      "AP",
 			Accnum:    "2000",
 		},
-		VendData{
+		vendData{
 			Name:      "Vendor",
 			Refnum:    "1",
 			PrintAs:   "",
@@ -30,6 +29,18 @@ func TestExport(t *testing.T) {
 			FirstName: "Jon",
 			LastName:  "Vendor",
 		},
+		trnsData{
+			TrnsID:   "",
+			TrnsType: "BILLPMT",
+			Date:     "7/16/1998",
+			Accnt:    "Checking",
+			Name:     "Vendor",
+			Amount:   "-35",
+			Docnum:   "",
+			Memo:     "Test Memo",
+			Clear:    "N",
+			ToPrint:  "Y",
+		},
 	}
 	err := Export(data)
 
@@ -37,7 +48,7 @@ func TestExport(t *testing.T) {
 }
 
 func TestGetHeader(t *testing.T) {
-	vend := VendData{
+	vend := vendData{
 		Name:      "Vendor",
 		Refnum:    "1",
 		PrintAs:   "",
@@ -52,13 +63,43 @@ func TestGetHeader(t *testing.T) {
 		LastName:  "Vendor",
 	}
 
-	header, err := getHeader(reflect.ValueOf(vend), Vend)
+	header, err := getHeader(vend)
 
 	assert.NoError(t, err)
 	fmt.Println(header)
 }
 
-type AccntData struct {
+func TestDataLineToString(t *testing.T) {
+	vend := vendData{
+		Name:      "Vendor",
+		Refnum:    "1",
+		PrintAs:   "",
+		Addr1:     "Jon Vendor",
+		Addr2:     "555",
+		Addr3:     "Street St",
+		Addr4:     `"Anywhere, AZ 85730"`,
+		Addr5:     "USA",
+		Cont1:     "Jon Vendor",
+		Phone1:    "5555555555",
+		FirstName: "Jon",
+		LastName:  "Vendor",
+	}
+
+	result, err := dataLineToString(vend)
+
+	assert.NoError(t, err)
+	fmt.Println(result)
+}
+
+func TestOrderLocation(t *testing.T) {
+	loc := orderOfTypes.Location(Accnt)
+	assert.Equal(t, loc, 0)
+
+	loc = orderOfTypes.Location(Trns)
+	assert.Equal(t, loc, 5)
+}
+
+type accntData struct {
 	Name      string `iif:"NAME"`
 	AccntType string `iif:"ACCNTTYPE"`
 	Desc      string `iif:"DESC"`
@@ -66,11 +107,11 @@ type AccntData struct {
 	Extra     string `iif:"EXTRA"`
 }
 
-func (a AccntData) GetType() Type {
+func (a accntData) GetType() Type {
 	return Accnt
 }
 
-type VendData struct {
+type vendData struct {
 	Name        string `iif:"NAME"`
 	Refnum      string `iif:"REFNUM"`
 	PrintAs     string `iif:"PRINTAS"`
@@ -98,6 +139,67 @@ type VendData struct {
 	LastName    string `iif:"LASTNAME"`
 }
 
-func (v VendData) GetType() Type {
+func (v vendData) GetType() Type {
 	return Vend
+}
+
+type trnsData struct {
+	TrnsID   string `iif:"TRNSID"`
+	TrnsType string `iif:"TRNSTYPE"`
+	Date     string `iif:"DATE"`
+	Accnt    string `iif:"ACCNT"`
+	Name     string `iif:"NAME"`
+	Amount   string `iif:"AMOUNT"`
+	Docnum   string `iif:"DOCNUM"`
+	Memo     string `iif:"MEMO"`
+	Clear    string `iif:"CLEAR"`
+	ToPrint  string `iif:"TOPRINT"`
+}
+
+func (t trnsData) GetType() Type {
+	return Trns
+}
+
+func BenchmarkExport(b *testing.B) {
+	data := []DataLine{
+		accntData{
+			Name:      "Accounts",
+			AccntType: "Payable",
+			Desc:      "AP",
+			Accnum:    "2000",
+		},
+		vendData{
+			Name:      "Vendor",
+			Refnum:    "1",
+			PrintAs:   "",
+			Addr1:     "Jon Vendor",
+			Addr2:     "555",
+			Addr3:     "Street St",
+			Addr4:     `"Anywhere, AZ 85730"`,
+			Addr5:     "USA",
+			Cont1:     "Jon Vendor",
+			Phone1:    "5555555555",
+			FirstName: "Jon",
+			LastName:  "Vendor",
+		},
+		trnsData{
+			TrnsID:   "",
+			TrnsType: "BILLPMT",
+			Date:     "7/16/1998",
+			Accnt:    "Checking",
+			Name:     "Vendor",
+			Amount:   "-35",
+			Docnum:   "",
+			Memo:     "Test Memo",
+			Clear:    "N",
+			ToPrint:  "Y",
+		},
+	}
+
+	for i := 0; i < b.N; i++ {
+		err := Export(data)
+		if err != nil {
+			panic(err)
+		}
+	}
 }

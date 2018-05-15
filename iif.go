@@ -3,6 +3,7 @@ package iif
 import (
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 )
 
@@ -29,29 +30,54 @@ type DataLine interface {
 
 type Wrapper struct {
 	Type   Type
-	Header []string
-	Lines  []DataLine
+	Header string
+	Line   string
 }
 
 func Export(dataLines []DataLine) error {
-	for _, dataLine := range dataLines {
-		rv := reflect.ValueOf(dataLine)
-		//rt := rv.Type()
+	var wrapper []Wrapper
 
-		if rv.Kind() != reflect.Struct {
-			continue
+	for _, dataLine := range dataLines {
+		header, err := getHeader(dataLine)
+		if err != nil {
+			return err
 		}
 
-		fmt.Println(rv.Kind())
+		line, err := dataLineToString(dataLine)
+		if err != nil {
+			return err
+		}
 
+		wrapper = append(wrapper, Wrapper{
+			Type:   dataLine.GetType(),
+			Header: header,
+			Line:   line,
+		})
 	}
-	//fmt.Println(data)
+
+	wrapper = sorting(wrapper)
+	//for _, v := range wrapper {
+	//	fmt.Println(v)
+	//}
+
 	return nil
 }
 
-func getHeader(rv reflect.Value, t Type) (string, error) {
-	var header []string
+func sorting(wrapper []Wrapper) []Wrapper {
+	sorting := func(i, j int) bool {
+		iLoc := orderOfTypes.Location(wrapper[i].Type)
+		jLoc := orderOfTypes.Location(wrapper[j].Type)
 
+		return iLoc < jLoc
+	}
+	sort.Slice(wrapper, sorting)
+	return wrapper
+}
+
+func getHeader(dataLine DataLine) (string, error) {
+	var header []string
+	t := dataLine.GetType()
+	rv := reflect.ValueOf(dataLine)
 	rt := rv.Type()
 
 	for i := 0; i < rt.NumField(); i++ {
@@ -65,9 +91,19 @@ func getHeader(rv reflect.Value, t Type) (string, error) {
 }
 
 func dataLineToString(dataLine DataLine) (string, error) {
-	var result string
+	var result []string
+	t := dataLine.GetType()
 
-	return result, nil
+	rv := reflect.ValueOf(dataLine)
+
+	for i := 0; i < rv.NumField(); i++ {
+		if rv.Field(i).Kind() != reflect.String {
+			result = append(result, "")
+		}
+		result = append(result, rv.Field(i).String())
+	}
+
+	return addType(strings.Join(result, tab), t, false), nil
 }
 
 func addType(line string, t Type, isHeader bool) string {
@@ -77,7 +113,9 @@ func addType(line string, t Type, isHeader bool) string {
 	return fmt.Sprintf("%s%s%s", t, tab, line)
 }
 
-var orderOfTypes = map[int]Type{
+type Types map[int]Type
+
+var orderOfTypes = Types{
 	0: Accnt,
 	1: Invitem,
 	2: Class,
@@ -85,4 +123,14 @@ var orderOfTypes = map[int]Type{
 	4: Vend,
 	5: Trns,
 	6: Spl,
+}
+
+func (t Types) Location(t2 Type) int {
+	for k, v := range t {
+		if v == t2 {
+			return k
+		}
+	}
+
+	return -1
 }
