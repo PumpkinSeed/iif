@@ -41,6 +41,18 @@ func TestExport(t *testing.T) {
 			Clear:    "N",
 			ToPrint:  "Y",
 		},
+		trnsData{
+			TrnsID:   "",
+			TrnsType: "BILLPMT",
+			Date:     "7/16/1999",
+			Accnt:    "Checking",
+			Name:     "Joe",
+			Amount:   "-35",
+			Docnum:   "",
+			Memo:     "Test Memo",
+			Clear:    "N",
+			ToPrint:  "Y",
+		},
 	}
 	err := Export(data)
 

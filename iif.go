@@ -34,6 +34,12 @@ type Wrapper struct {
 	Line   string
 }
 
+type GroupedWrapper struct {
+	Type   Type
+	Header string
+	Lines  []string
+}
+
 func Export(dataLines []DataLine) error {
 	var wrapper []Wrapper
 
@@ -56,9 +62,11 @@ func Export(dataLines []DataLine) error {
 	}
 
 	wrapper = sorting(wrapper)
-	//for _, v := range wrapper {
-	//	fmt.Println(v)
-	//}
+	gw := grouping(wrapper)
+
+	for _, v := range gw {
+		fmt.Println(v)
+	}
 
 	return nil
 }
@@ -72,6 +80,39 @@ func sorting(wrapper []Wrapper) []Wrapper {
 	}
 	sort.Slice(wrapper, sorting)
 	return wrapper
+}
+
+func grouping(wrapper []Wrapper) []GroupedWrapper {
+	var gw []GroupedWrapper
+
+	if len(wrapper) < 1 {
+		return nil
+	}
+
+	var temp = groupingTemp(wrapper[0])
+
+	for k, v := range wrapper {
+		if k != 0 {
+
+			if v.Type != temp.Type {
+				gw = append(gw, temp)
+				temp = groupingTemp(v)
+			} else {
+				temp.Lines = append(temp.Lines, v.Line)
+			}
+		}
+	}
+	gw = append(gw, temp)
+
+	return gw
+}
+
+func groupingTemp(wrapper Wrapper) GroupedWrapper {
+	return GroupedWrapper{
+		Type:   wrapper.Type,
+		Header: wrapper.Header,
+		Lines:  []string{wrapper.Line},
+	}
 }
 
 func getHeader(dataLine DataLine) (string, error) {
