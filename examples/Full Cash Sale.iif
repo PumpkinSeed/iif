@@ -1,0 +1,23 @@
+!ACCNT	NAME	ACCNTTYPE	DESC	ACCNUM	EXTRA																										
+ACCNT	Undeposited Funds	OCASSET		1400	UNDEPOSIT																										
+ACCNT	Construction:Materials	INC		4200																											
+ACCNT	Construction:Labor	INC		4100																											
+ACCNT	Job Expenses:Job Materials	EXP	Job Materials	7420																											
+!INVITEM	NAME	INVITEMTYPE	DESC	PURCHASEDESC	ACCNT	ASSETACCNT	COGSACCNT	PRICE	COST	TAXABLE	PAYMETH	TAXVEND	TAXDIST	PREFVEND	REORDERPOINT	EXTRA															
+INVITEM	Installation	SERV	Installation labor		Construction:Labor			35	0	N												0	N	N	0	N					
+INVITEM	Removal	SERV	Removal labor		Construction:Labor			35	0	N												0	N	N	0	N					
+INVITEM	Counter	PART	Custom made counter top	Custom made counter top	Construction:Materials		Job Expenses:Job Materials	"1,899.98"	"1,750.00"	Y				Thomas Kitchen & Bath								0	Y	N	0	N					
+!CLASS	NAME	HIDDEN	DELCOUNT																												
+CLASS	class	N	0																												
+!CUST	NAME	BADDR1	BADDR2	BADDR3	BADDR4	BADDR5	SADDR1	SADDR2	SADDR3	SADDR4	SADDR5	PHONE1	PHONE2	FAXNUM	EMAIL	NOTE	CONT1	CONT2	CTYPE	TERMS	TAXABLE	LIMIT	RESALENUM	REP	TAXITEM	NOTEPAD	SALUTATION	COMPANYNAME	FIRSTNAME	MIDINIT	LASTNAME
+CUST	Customer	Joe Customer	444 Road Rd	"Anywhere, AZ 85740"	USA							5554443333					Joe Customer				N								Joe		Customer
+!VEND	NAME	PRINTAS	ADDR1	ADDR2	ADDR3	ADDR4	ADDR5	VTYPE	CONT1	CONT2	PHONE1	PHONE2	FAXNUM	EMAIL	NOTE	TAXID	LIMIT	TERMS	NOTEPAD	SALUTATION	COMPANYNAME	FIRSTNAME	MIDINIT	LASTNAME							
+VEND	Vendor		Jon Vendor	555 Street St	"Anywhere, AZ 85730"	USA			Jon Vendor		5555555555											Jon		Vendor							
+!TRNS	TRNSID	TRNSTYPE	DATE	ACCNT	NAME	CLASS	AMOUNT	DOCNUM	MEMO	CLEAR	TOPRINT	NAMEISTAXABLE	ADDR1	ADDR2	ADDR3	ADDR4	ADDR5	DUEDATE	TERMS												
+!SPL	SPLID	TRNSTYPE	DATE	ACCNT	NAME	CLASS	AMOUNT	DOCNUM	MEMO	CLEAR	QNTY	PRICE	INVITEM	PAYMETH	TAXABLE	VALADJ	REIMBEXP	SERVICEDATE	OTHER2
+!ENDTRNS																			
+TRNS		CASH SALE	7/16/1998	Undeposited Funds	Customer		1969.98	1		N	Y	N						7/16/1998	
+SPL		CASH SALE	7/16/1998	Construction:Labor			-35		Removal Labor	N		35	Removal		N	N	NOTHING	0/0/0	
+SPL		CASH SALE	7/16/1998	Construction:Materials			-1899.98		Custom made counter top	N		1899.98	Counter		Y	N	NOTHING	0/0/0	
+SPL		CASH SALE	7/16/1998	Construction:Labor			-35		Installation labor	N		35	Installation		N	N	NOTHING	0/0/0	
+ENDTRNS																			
