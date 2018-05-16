@@ -27,6 +27,17 @@ Trns    Type = "TRNS"
 Spl     Type = "SPL"
 ```
 
+### Benchmark
+
+```
+goos: darwin
+goarch: amd64
+pkg: github.com/PumpkinSeed/iif
+BenchmarkExport-4   	   10000	    206726 ns/op
+PASS
+ok  	github.com/PumpkinSeed/iif	2.113s
+```
+
 ### Usage
 
 ```
