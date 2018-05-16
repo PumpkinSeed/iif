@@ -9,16 +9,30 @@ import (
 	"strings"
 )
 
+// Type defines the Type enum
 type Type string
 
 const (
-	Accnt   Type = "ACCNT"
+	// Accnt type
+	Accnt Type = "ACCNT"
+
+	// Invitem type
 	Invitem Type = "INVITEM"
-	Class   Type = "CLASS"
-	Cust    Type = "CUST"
-	Vend    Type = "VEND"
-	Trns    Type = "TRNS"
-	Spl     Type = "SPL"
+
+	// Class type
+	Class Type = "CLASS"
+
+	// Cust type
+	Cust Type = "CUST"
+
+	// Vend type
+	Vend Type = "VEND"
+
+	// Trns type
+	Trns Type = "TRNS"
+
+	// Spl type
+	Spl Type = "SPL"
 )
 
 const (
@@ -28,22 +42,26 @@ const (
 	tag     = "iif"
 )
 
+// DataLine provides an interface type to determine the structs type
 type DataLine interface {
 	GetType() Type
 }
 
+// Wrapper is the container for a line
 type Wrapper struct {
 	Type   Type
 	Header string
 	Line   string
 }
 
+// GroupedWrapper is a container for a specified type
 type GroupedWrapper struct {
 	Type   Type
 	Header string
 	Lines  []string
 }
 
+// Export is the main entrypoint
 func Export(dataLines []DataLine, filename string) error {
 	var wrapper []Wrapper
 
@@ -71,6 +89,34 @@ func Export(dataLines []DataLine, filename string) error {
 
 	return writeFile(lines, filename)
 }
+
+// Types is the list of Types
+type Types map[int]Type
+
+var orderOfTypes = Types{
+	0: Accnt,
+	1: Invitem,
+	2: Class,
+	3: Cust,
+	4: Vend,
+	5: Trns,
+	6: Spl,
+}
+
+// Location determine the location in the Type list
+func (t Types) Location(t2 Type) int {
+	for k, v := range t {
+		if v == t2 {
+			return k
+		}
+	}
+
+	return -1
+}
+
+/*
+	HELPERS
+*/
 
 func sorting(wrapper []Wrapper) []Wrapper {
 	sorting := func(i, j int) bool {
@@ -235,26 +281,4 @@ func addType(line string, t Type, isHeader bool) string {
 		t = "!" + t
 	}
 	return fmt.Sprintf("%s%s%s", t, tab, line)
-}
-
-type Types map[int]Type
-
-var orderOfTypes = Types{
-	0: Accnt,
-	1: Invitem,
-	2: Class,
-	3: Cust,
-	4: Vend,
-	5: Trns,
-	6: Spl,
-}
-
-func (t Types) Location(t2 Type) int {
-	for k, v := range t {
-		if v == t2 {
-			return k
-		}
-	}
-
-	return -1
 }
