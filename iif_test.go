@@ -1,7 +1,7 @@
 package iif
 
 import (
-	"fmt"
+	"io/ioutil"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -69,6 +69,11 @@ func TestExport(t *testing.T) {
 	err := Export(data, "example")
 
 	assert.NoError(t, err)
+
+	dat, err := ioutil.ReadFile("example.iif")
+	assert.NoError(t, err)
+	expected := "!ACCNT\tNAME\tACCNTTYPE\tDESC\tACCNUM\tEXTRA\nACCNT\tAccounts\tPayable\tAP\t2000\t\n!VEND\tNAME\tREFNUM\tPRINTAS\tADDR1\tADDR2\tADDR3\tADDR4\tADDR5\tVTYPE\tCONT1\tCONT2\tPHONE1\tPHONE2\tFAXNUM\tEMAIL\tNOTE\tTAXID\tLIMIT\tTERMS\tNOTEPAD\tSALUTATION\tCOMPANYNAME\tFIRSTNAME\tMIDINIT\tLASTNAME\nVEND\tVendor\t1\t\tJon Vendor\t555\tStreet St\t\"Anywhere, AZ 85730\"\tUSA\t\tJon Vendor\t\t5555555555\t\t\t\t\t\t\t\t\t\t\tJon\t\tVendor\n!TRNS\tTRNSID\tTRNSTYPE\tDATE\tACCNT\tNAME\tAMOUNT\tDOCNUM\tMEMO\tCLEAR\tTOPRINT\n!SPL\tSPLID\tTRNSTYPE\tDATE\tACCNT\tNAME\tCLASS\tAMOUNT\tDOCNUM\tMEMP\tCLEAR\n!ENDTRNS\nTRNS\t\tBILLPMT\t7/16/1998\tChecking\tVendor\t-35\t\tTest Memo\tN\tY\nTRNS\t\tBILLPMT\t7/16/1999\tChecking\tJoe\t-35\t\tTest Memo\tN\tY\nSPL\t\tDEPOSIT\t7/1/1998\tIncome\tCustomer\t\t-10000\t\t\tN\nENDTRNS"
+	assert.Equal(t, expected, string(dat))
 }
 
 func TestSorting(t *testing.T) {
@@ -222,7 +227,9 @@ func TestGetHeader(t *testing.T) {
 	header, err := getHeader(vend)
 
 	assert.NoError(t, err)
-	fmt.Println(header)
+
+	expected := "!VEND\tNAME\tREFNUM\tPRINTAS\tADDR1\tADDR2\tADDR3\tADDR4\tADDR5\tVTYPE\tCONT1\tCONT2\tPHONE1\tPHONE2\tFAXNUM\tEMAIL\tNOTE\tTAXID\tLIMIT\tTERMS\tNOTEPAD\tSALUTATION\tCOMPANYNAME\tFIRSTNAME\tMIDINIT\tLASTNAME"
+	assert.Equal(t, expected, header)
 }
 
 func TestDataLineToString(t *testing.T) {
@@ -233,7 +240,7 @@ func TestDataLineToString(t *testing.T) {
 		Addr1:     "Jon Vendor",
 		Addr2:     "555",
 		Addr3:     "Street St",
-		Addr4:     `"Anywhere, AZ 85730"`,
+		Addr4:     `Anywhere, AZ 85730`,
 		Addr5:     "USA",
 		Cont1:     "Jon Vendor",
 		Phone1:    "5555555555",
@@ -244,7 +251,17 @@ func TestDataLineToString(t *testing.T) {
 	result, err := dataLineToString(vend)
 
 	assert.NoError(t, err)
-	fmt.Println(result)
+
+	expected := "VEND\tVendor\t1\t\tJon Vendor\t555\tStreet St\tAnywhere, AZ 85730\tUSA\t\tJon Vendor\t\t5555555555\t\t\t\t\t\t\t\t\t\t\tJon\t\tVendor"
+	assert.Equal(t, expected, result)
+}
+
+func TestGetEndTrns(t *testing.T) {
+	endtrns := getEndTrns(true)
+	assert.Equal(t, "!"+endTrns, endtrns)
+
+	endtrns = getEndTrns(false)
+	assert.Equal(t, endTrns, endtrns)
 }
 
 func TestOrderLocation(t *testing.T) {
