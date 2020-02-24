@@ -27,7 +27,7 @@ jobs:
     - name: Test
       run: go test -v ./...
     
-    - name: Go-Linty
-      uses: ArangoGutierrez/GoLinty-Action@go-1.13rc1-alpine
+    - name: GolangCI-Linter
+      uses: Mushus/golangci-linter@v1.1.2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
