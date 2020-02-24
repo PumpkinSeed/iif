@@ -1,3 +1,4 @@
+[![Actions Status](https://github.com/PumpkinSeed/iif/workflows/Go/badge.svg)](https://github.com/PumpkinSeed/iif/actions)
 # iif
 
 iif file format exporter
